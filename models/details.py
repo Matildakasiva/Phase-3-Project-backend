@@ -1,5 +1,5 @@
 import sqlite3
-
+import json
 
 conn = sqlite3.connect("db.sqlite")
 cursor = conn.cursor()
@@ -19,6 +19,11 @@ class Details:
 
     # saves to the database by excecuting INSERT query: adds the commited changes to the new inserted row
     def save(self):
+        #converts a list into a string
+        self.attractions = json.dumps(self.attractions)
+        self.accomodation = json.dumps(self.accomodation)
+        self.vehicle_rentals = json.dumps(self.vehicle_rentals)
+
         sql = f"""
             INSERT INTO {self.TABLE_NAME} (name, image, attractions, festivals, accomodation, vehicle_rentals)
             VALUES (?, ?, ?, ?, ?, ?)
@@ -44,9 +49,41 @@ class Details:
             "id": self.id,
             "name": self.name,
             "image": self.image,
-            "festivals": self.festivals,
-            "attractions": self.attractions
+            "festivals": json.dumps(self.festivals),
+            "attractions": json.dumps(self.attractions),
+            "vehicle_rentals": json.dumps(self.vehicle_rentals)
         }
+    
+    # retrieves details from the database and returns a list of all the details
+    @classmethod
+    def find_all(cls):
+        sql = f"SELECT * FROM {cls.TABLE_NAME}"
+        cursor.execute(sql)
+        rows = cursor.fetchall()
+        details = []
+        for row in rows:
+            detail = cls(*row[1:])
+            detail.id = row[0]
+
+            #converts list to a string
+            detail.attractions = json.loads(detail.attractions)
+            detail.accomodation = json.loads(detail.accomodation)
+            detail.vehicle_rentals = json.loads(detail.vehicle_rentals)
+
+            details.append(detail)
+        return details
+    
+    #retrieves details by the id given
+    @classmethod
+    def find_by_id(cls, id):
+        sql = f"SELECT * FROM {cls.TABLE_NAME} WHERE id =?"
+        cursor.execute(sql, (id,))
+        row = cursor.fetchone()
+        if row:
+            detail = cls(*row[1:])
+            detail.id = row[0]
+            return detail
+        return None
     
     @classmethod
     def create_table(cls):

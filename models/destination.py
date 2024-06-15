@@ -46,6 +46,32 @@ class Destination:
             "location": self.location
         }
     
+    #retrieves all destinations from the database and returns they as a list
+    @classmethod
+    def find_all(cls):
+        sql = f"SELECT * FROM {cls.TABLE_NAME}"
+        cursor.execute(sql)
+        rows = cursor.fetchall()
+        destinations = []
+        for row in rows:
+            destination = cls(*row[1:])
+            destination.id = row[0]
+            destinations.append(destination)
+        return destinations
+    
+
+    # retrieves destination by the given id
+    @classmethod
+    def find_by_id(cls, id):
+        sql = f"SELECT * FROM {cls.TABLE_NAME} WHERE id =?"
+        cursor.execute(sql, (id,))
+        row = cursor.fetchone()
+        if row:
+            destination = cls(*row[1:])
+            destination.id = row[0]
+            return destination
+        return None
+    
     @classmethod
     def create_table(cls):
 
@@ -68,3 +94,6 @@ class Destination:
             conn.close()
 
 Destination.create_table()
+
+
+
