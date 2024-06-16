@@ -20,6 +20,7 @@ def get_destination():
     destination = Destination.find_all()
     return destination
 
+#updates
 @app.post('/destination')
 def create_destination(data: DestinationModel):
     destination = Destination(data.name, data.image, data.location, data.description)
@@ -34,6 +35,7 @@ def delete_destination(id: int):
         return {"message": "Destination deleted successfully"}
     return {"message": "Deletion not successfull"}
 
+#edits
 @app.patch('/destination/{id}')
 def update_destination(id: int, data: DestinationModel):
     destination = Destination.find_by_id(id)
@@ -46,13 +48,19 @@ def update_destination(id: int, data: DestinationModel):
         return {"message": "Destination updated successfully"}
     return {"message": "Destination not found"}, 404
 
-
+#gets all
 @app.get('/details')
 def get_details():
     details = Details.find_all()
     return details
 
+#gets by id
+@app.get('/details/{id}')
+def get_detail(id: int):
+    detail = Details.find_by_id(id)
+    return detail
 
+#updates
 @app.post('/details')
 def create_details(data: DetailsModel):
     details = Details(data.name, data.image, data.accomodation, data.attractions, data.festivals, data.vehicle_rentals)
@@ -60,6 +68,7 @@ def create_details(data: DetailsModel):
 
     return details.to_dict()
 
+#deletes
 @app.delete('/details/{id}')
 def delete_details(id: int):
     details = Details.find_by_id(id)
