@@ -1,9 +1,15 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from validation_models import DestinationModel, DetailsModel, JournalModel
+
 from models.destination import Destination
 from models.details import Details
 from models.journal import Journal
 
-app = FastAPI()
+app = FastAPI(debug=True)
+
+app.add_middleware(CORSMiddleware, allow_origins = ["*"], allow_credentials = True, allow_methods = ["*"], allow_headers = ["*"])
 
 @app.get('/')
 def index():
@@ -14,10 +20,11 @@ def get_destination():
     destination = Destination.find_all()
     return destination
 
-@app.post('/destination/')
-def create_destination(destination: Destination):
+@app.post('/destination')
+def create_destination(data: DestinationModel):
+    destination = Destination(data.name, data.image, data.location, data.description)
     destination.save()
-    return destination
+    return destination.to_dict()
 
 @app.delete('/destination/{id}')
 def delete_destination(id: int):
@@ -27,16 +34,31 @@ def delete_destination(id: int):
         return {"message": "Destination deleted successfully"}
     return {"message": "Deletion not successfull"}
 
+@app.patch('/destination/{id}')
+def update_destination(id: int, data: DestinationModel):
+    destination = Destination.find_by_id(id)
+    if destination:
+        destination.name = data.name
+        destination.image = data.image
+        destination.location = data.location
+        destination.description = data.description
+        destination.update()
+        return {"message": "Destination updated successfully"}
+    return {"message": "Destination not found"}, 404
+
 
 @app.get('/details')
 def get_details():
     details = Details.find_all()
     return details
 
-@app.post('/details/')
-def create_details(details: Details):
+
+@app.post('/details')
+def create_details(data: DetailsModel):
+    details = Details(data.name, data.image, data.accomodation, data.attractions, data.festivals, data.vehicle_rentals)
     details.save()
-    return details
+
+    return details.to_dict()
 
 @app.delete('/details/{id}')
 def delete_details(id: int):
@@ -62,10 +84,12 @@ async def search_journal_entries(q: str):
     return results
 
 # Creates a new journal entry
-@app.post("/journal_entries/")
-def create_journal_entry(journal_entry: Journal):
-    Journal.append(journal_entry)
-    return journal_entry
+@app.post("/journal_entries")
+def create_journal_entry(data: JournalModel):
+    journal = Journal(data.title, data.content, data.time)
+    journal.save()
+    Journal.append(journal)
+    return journal
 
 #deletes a journal entry
 @app.delete("/journal_entries/{id}")

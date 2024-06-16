@@ -1,7 +1,7 @@
 import sqlite3
 import json
 
-conn = sqlite3.connect("db.sqlite")
+conn = sqlite3.connect("db.sqlite", check_same_thread=False)
 cursor = conn.cursor()
 
 class Details:
@@ -32,6 +32,12 @@ class Details:
         conn.commit()
         self.id = cursor.lastrowid
         return self
+    
+    #deletes from the database
+    def delete(self):
+        sql = f"DELETE FROM {self.TABLE_NAME} WHERE id = ?"
+        cursor.execute(sql, (self.id,))
+        conn.commit()
     
     # updates to the database
     def update(self):
@@ -105,7 +111,6 @@ class Details:
             print("Destination details table created successfully")
         except Exception as e:
             print(f"Error creating table: {e}")
-        finally:
-            conn.close()
+        
 
 Details.create_table()

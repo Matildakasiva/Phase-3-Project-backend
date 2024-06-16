@@ -1,6 +1,7 @@
 import sqlite3
+import datetime
 
-conn = sqlite3.connect("db.sqlite")
+conn = sqlite3.connect("db.sqlite", check_same_thread=False)
 cursor = conn.cursor()
 
 class Journal:
@@ -22,6 +23,22 @@ class Journal:
         cursor.execute(sql, (self.title, self.content, self.timestamp, self.destination_id ))
         conn.commit()
         self.id = cursor.lastrowid
+        return self
+    
+     #deletes from the database
+    def delete(self):
+        sql = f"DELETE FROM {self.TABLE_NAME} WHERE id = ?"
+        cursor.execute(sql, (self.id,))
+        conn.commit()
+    
+    # updates to the database
+    def update(self):
+        sql = f"""
+            UPDATE {self.TABLE_NAME}
+            SET title = ?, content = ?, timestamp = ?, destination_id = ? 
+        """
+        cursor.execute(sql, (self.title, self.content, self.timestamp, self.destination_id))
+        conn.commit()
         return self
     
     #returns a dictionary rep. of the table
@@ -66,7 +83,7 @@ class Journal:
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT NOT NULL,
                 content TEXT NOT NULL,
-                timestamp DATE NOT NULL,
+                timestamp DATETIME NOT NULL,
                 destination_id INTEGER NOT NULL
             )
         """
