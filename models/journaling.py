@@ -4,23 +4,22 @@ import datetime
 conn = sqlite3.connect("db.sqlite", check_same_thread=False)
 cursor = conn.cursor()
 
-class Journal:
-    TABLE_NAME = "journal_entries"
+class Journaling:
+    TABLE_NAME = "my_journal_entries"
 
-    def __init__(self, title, content, timestamp, destination_id):
+    def __init__(self, title, content):
         self.id = None
         self.title = title
         self.content = content
-        self.timestamp = timestamp
-        self.destination_id = destination_id
+        self.timestamp = datetime.datetime.now()
 
     # saves to the database by excecuting INSERT query: adds the commited changes to the new inserted row 
     def save(self):
         sql = f"""
-            INSERT INTO {self.TABLE_NAME} (title, content, timestamp, destination_id)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO {self.TABLE_NAME} (title, content)
+            VALUES (?, ?)
         """
-        cursor.execute(sql, (self.title, self.content, self.timestamp, self.destination_id ))
+        cursor.execute(sql, (self.title, self.content))
         conn.commit()
         self.id = cursor.lastrowid
         return self
@@ -35,9 +34,10 @@ class Journal:
     def update(self):
         sql = f"""
             UPDATE {self.TABLE_NAME}
-            SET title = ?, content = ?, timestamp = ?, destination_id = ? 
+            SET title = ?, content = ?
+            WHERE id = ?
         """
-        cursor.execute(sql, (self.title, self.content, self.timestamp, self.destination_id))
+        cursor.execute(sql, (self.title, self.content, self.id))
         conn.commit()
         return self
     
@@ -47,8 +47,7 @@ class Journal:
             "id": self.id,
             "title": self.title,
             "content": self.content,
-            "timestamp": self.timestamp,
-            "destination_id": self.destination_id
+            "timestamp": self.timestamp
         }
     
     #retrieves journal_entries from the database
@@ -60,7 +59,8 @@ class Journal:
         journals = []
         for row in rows:
             journal = cls(*row[1:])
-            journal.id = row[0]
+            journal.id = row[0] 
+            journal.timestamp = row[3]
             journals.append(journal)
         return journals
     
@@ -73,6 +73,7 @@ class Journal:
         if row:
             journal = cls(*row[1:])
             journal.id = row[0]
+            journal.timestamp = row[3]
             return journal
         return None
     
@@ -83,12 +84,16 @@ class Journal:
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT NOT NULL,
                 content TEXT NOT NULL,
-                timestamp DATETIME NOT NULL,
-                destination_id INTEGER NOT NULL
+                timestamp DATETIME NOT NULL
             )
         """
         cursor.execute(sql)
         conn.commit()
         print("Journal_entries table created")
 
-Journal.create_table()
+    
+Journaling.create_table()
+
+# cursor.execute(f"DROP TABLE IF EXISTS {Journal.TABLE_NAME}")
+# conn.commit()
+# print("Journal_entries table deleted")

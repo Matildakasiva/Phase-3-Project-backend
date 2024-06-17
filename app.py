@@ -5,7 +5,7 @@ from validation_models import DestinationModel, DetailsModel, JournalModel
 
 from models.destination import Destination
 from models.details import Details
-from models.journal import Journal
+from models.journaling import Journaling
 
 app = FastAPI(debug=True)
 
@@ -14,6 +14,9 @@ app.add_middleware(CORSMiddleware, allow_origins = ["*"], allow_credentials = Tr
 @app.get('/')
 def index():
     return {"Msg": "Hello World."}
+
+
+#destination
 
 @app.get('/destination')
 def get_destination():
@@ -48,6 +51,8 @@ def update_destination(id: int, data: DestinationModel):
         return {"message": "Destination updated successfully"}
     return {"message": "Destination not found"}, 404
 
+#destination details
+
 #gets all
 @app.get('/details')
 def get_details():
@@ -78,34 +83,37 @@ def delete_details(id: int):
     return {"message": "Deletion not successfull"}
 
 
-
+ # Journal
 @app.get('/journal_entries')
 def get_journal():
-    journal = Journal.find_all()
+    journal = Journaling.find_all()
     return journal
 
-# searches for a journal entry by title 
-@app.get("/journal_entries/search/")
-async def search_journal_entries(q: str):
-    results = [entry for entry in Journal.find_all() if q in entry.title] 
-    if not results:
-        return{"message": "Journal title not found."}
-    return results
+#edits
+@app.patch('/journal_entries/{id}')
+def update_entry(id: int, data: JournalModel):
+    entry = Journaling.find_by_id(id)
+    if entry:
+        entry.title = data.title
+        entry.content = data.content
+        entry.timestamp = data.timestamp
+        entry.update()
+        return {"message": "entry updated successfully"}
+    return {"message": "entry not found"}, 404
+
 
 # Creates a new journal entry
 @app.post("/journal_entries")
 def create_journal_entry(data: JournalModel):
-    journal = Journal(data.title, data.content, data.time)
+    journal = Journaling(data.title, data.content)
     journal.save()
-    Journal.append(journal)
-    return journal
 
 #deletes a journal entry
 @app.delete("/journal_entries/{id}")
 def delete_journal_entry(id: int):
-    for entry in Journal:
-        if entry.id == id:
-            Journal.remove(entry)
-            return {"message": "Journal entry deleted successfully"}
-    return {"message": "Journal entry not found"}, 404
+    entry = Journaling.find_by_id(id)
+    if entry:
+        entry.delete()
+        return{"message": "Entry successfully deleted"}
+    return {"message": "Deletion not successfull"}
 

@@ -1,14 +1,15 @@
 from pydantic import BaseModel
+from datetime import datetime
 
 class DestinationModel(BaseModel):
-    id: int
+    id: int = None
     name: str
     image: str
     location: str
     description: str
 
 class DetailsModel(BaseModel):
-    id: int
+    id: int = None
     name: str
     image: str
     attractions: str
@@ -17,7 +18,7 @@ class DetailsModel(BaseModel):
     vehicle_rentals: str
 
 class JournalModel(BaseModel):
-    id: int
+    id: int = None
     title: str
     content: str
-    time: int
+    timestamp: datetime = datetime.now()
