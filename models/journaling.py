@@ -6,12 +6,20 @@ cursor = conn.cursor()
 
 class Journaling:
     TABLE_NAME = "my_journal_entries"
-
-    def __init__(self, title, content):
-        self.id = None
-        self.title = title
-        self.content = content
-        self.timestamp = datetime.datetime.now()
+    
+    #args = used to a pass variable number of arguments
+    def __init__(self, *args):
+        if len(args) == 2:
+            self.id = None
+            self.title, self.content = args
+            self.timestamp = datetime.datetime.now()
+        elif len(args) == 3:
+            self.id, self.title, self.content = args
+            self.timestamp = datetime.datetime.now()
+        elif len(args) == 4:
+            self.id, self.title, self.content, self.timestamp = args
+        else:
+            raise ValueError("Invalid number of arguments")
 
     # saves to the database by excecuting INSERT query: adds the commited changes to the new inserted row 
     def save(self):
@@ -84,16 +92,19 @@ class Journaling:
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT NOT NULL,
                 content TEXT NOT NULL,
-                timestamp DATETIME NOT NULL
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         """
         cursor.execute(sql)
         conn.commit()
         print("Journal_entries table created")
 
-    
 Journaling.create_table()
 
 # cursor.execute(f"DROP TABLE IF EXISTS {Journal.TABLE_NAME}")
 # conn.commit()
 # print("Journal_entries table deleted")
+# cursor.execute("ALTER TABLE my_journal_entries DROP COLUMN timestamp")
+# conn.commit()
+# print("timestamp column deleted")
+
